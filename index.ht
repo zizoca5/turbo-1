@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TURBO SCRIPT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-red: #ff2a2a;
+            --dark-red: #8b0000;
+            --bg-color: #050505;
+            --card-bg: #111111;
+            --border-color: #2a2a2a;
+            --text-color: #ffffff;
+            --text-muted: #aaaaaa;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Cairo', sans-serif; background-color: var(--bg-color); color: var(--text-color);
+            min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow-x: hidden; position: relative;
+        }
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.4; }
+        .web-container { position: relative; z-index: 10; width: 100%; max-width: 480px; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+        .screen { display: none; width: 100%; animation: fadeIn 0.5s ease-in-out; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .splash-content { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; min-height: 80vh; }
+        .logo-container { text-align: center; margin-bottom: 20px; }
+        .logo-container img { width: 120px; height: auto; border-radius: 20px; box-shadow: 0 0 30px rgba(255, 42, 42, 0.5); border: 2px solid var(--primary-red); object-fit: cover; background-color: #222; }
+        .title-main { text-align: center; font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: 900; margin-bottom: 10px; letter-spacing: 2px; text-shadow: 0 0 15px rgba(255, 42, 42, 0.8); }
+        .title-main span { color: var(--primary-red); }
+        .subtitle { text-align: center; font-size: 14px; color: var(--text-muted); margin-bottom: 30px; }
+
+        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: #fff; }
+        .card-title i { color: var(--primary-red); }
+        .input-group { display: flex; align-items: center; background: #000; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 15px; margin-bottom: 15px; transition: 0.3s; }
+        .input-group:focus-within { border-color: var(--primary-red); box-shadow: 0 0 15px rgba(255, 42, 42, 0.3); }
+        .input-group input { background: transparent; border: none; color: white; width: 100%; font-family: 'Orbitron', sans-serif; font-size: 16px; outline: none; text-align: center; letter-spacing: 2px; }
+        .input-group input::placeholder { color: #555; font-family: 'Cairo', sans-serif; letter-spacing: 0; }
+        .input-group i { color: var(--text-muted); }
+        .promo-badge { background: rgba(255, 42, 42, 0.1); border: 1px dashed var(--primary-red); color: var(--primary-red); text-align: center; padding: 12px; border-radius: 10px; font-family: 'Orbitron', sans-serif; font-weight: 700; margin-bottom: 20px; font-size: 18px; letter-spacing: 2px; }
+        .code-highlight { color: var(--primary-red); font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 16px; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+        .price-highlight { display: flex; gap: 15px; margin-top: 10px; }
+        .price-item { background: #000; padding: 8px 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center; flex: 1; }
+        .price-item .value { color: white; font-size: 16px; font-weight: 700; font-family: 'Orbitron', sans-serif; }
+        .price-item .label { font-size: 11px; color: var(--text-muted); }
+
+        .step-box { background: #161616; border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 15px; }
+        .step-box .step-number { background: var(--primary-red); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+        .step-box .step-info { flex: 1; }
+        .step-box .step-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+        .step-box .step-desc { font-size: 12px; color: var(--text-muted); }
+        .step-box .step-icon { color: var(--primary-red); font-size: 20px; flex-shrink: 0; }
+
+        .upload-box { border: 2px dashed var(--border-color); border-radius: 12px; padding: 25px 15px; text-align: center; cursor: pointer; position: relative; transition: 0.3s; margin-bottom: 15px; background: #0a0a0a; }
+        .upload-box:hover, .upload-box.has-file { border-color: var(--primary-red); background: rgba(255, 42, 42, 0.05); }
+        .upload-box input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
+        .upload-box i { font-size: 24px; color: var(--primary-red); margin-bottom: 10px; }
+        .upload-box p { font-size: 14px; color: var(--text-muted); }
+        .upload-box .success-icon { display: none; color: #00ff00; font-size: 24px; position: absolute; top: 10px; left: 10px; }
+        .upload-box.has-file .success-icon { display: block; }
+        .upload-box.has-file p { color: #ffffff; font-weight: 600; }
+
+        .btn-primary { width: 100%; background: linear-gradient(90deg, var(--dark-red), var(--primary-red)); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 18px; font-weight: 700; font-family: 'Cairo', sans-serif; cursor: pointer; box-shadow: 0 5px 20px rgba(255, 42, 42, 0.3); transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary:disabled { background: #333; box-shadow: none; cursor: not-allowed; color: #777; }
+
+        #verification-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .verify-modal { background: #111; border: 1px solid var(--border-color); border-radius: 20px; padding: 30px 20px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 0 50px rgba(255, 0, 0, 0.2); position: relative; animation: zoomIn 0.3s ease-out; }
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .close-overlay { position: absolute; top: 15px; left: 15px; color: var(--text-muted); font-size: 22px; cursor: pointer; transition: 0.3s; }
+        .close-overlay:hover { color: var(--primary-red); }
+        .verify-modal .icon-top { width: 60px; height: 60px; background: rgba(255, 42, 42, 0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; color: var(--primary-red); font-size: 24px; border: 1px solid var(--primary-red); }
+        .verify-title { font-family: 'Orbitron', sans-serif; font-size: 14px; letter-spacing: 2px; color: var(--primary-red); margin-bottom: 8px; }
+        .verify-desc { font-size: 18px; font-weight: 700; margin-bottom: 25px; }
+        .verify-steps { text-align: right; margin-bottom: 25px; }
+        .step-item { display: flex; align-items: center; gap: 12px; padding: 14px; background: #0a0a0a; border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--border-color); transition: 0.3s; font-size: 14px; }
+        .step-item.active { border-color: var(--primary-red); background: rgba(255, 42, 42, 0.1); }
+        .step-item.done { color: #00ff00; border-color: #00ff00; background: rgba(0, 255, 0, 0.05); }
+        .step-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; background: #222; font-size: 12px; color: #555; flex-shrink: 0; }
+        .step-item.active .step-icon { background: var(--primary-red); color: white; animation: pulse 1s infinite; }
+        .step-item.done .step-icon { background: #00ff00; color: #000; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .progress-bar-container { width: 100%; height: 8px; background: #222; border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+        .progress-bar { height: 100%; width: 0%; background: var(--primary-red); transition: width 0.5s ease; box-shadow: 0 0 10px var(--primary-red); }
+        .progress-text { font-size: 13px; color: var(--text-muted); display: flex; justify-content: space-between; font-family: 'Orbitron', sans-serif; }
+
+        /* Rejection Screen */
+        .rejection-card { background: #0a0000; border: 1px solid var(--primary-red); border-radius: 20px; padding: 40px 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 0 50px rgba(255, 42, 42, 0.1) inset; position: relative; }
+        .rejection-icon { width: 80px; height: 80px; background: rgba(255, 42, 42, 0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; color: var(--primary-red); font-size: 40px; border: 2px solid var(--primary-red); }
+        .rejection-title-en { font-family: 'Orbitron', sans-serif; font-size: 16px; letter-spacing: 4px; color: var(--primary-red); margin-bottom: 15px; font-weight: 700; }
+        .rejection-title-ar { font-size: 24px; font-weight: 900; margin-bottom: 10px; color: #fff; }
+        .rejection-desc { font-size: 16px; color: var(--primary-red); margin-bottom: 30px; font-weight: 700; }
+        .rejection-list { text-align: right; background: #111; padding: 20px; border-radius: 15px; border: 1px solid var(--border-color); margin-bottom: 30px; }
+        .rejection-list-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 15px; font-size: 14px; color: #ddd; line-height: 1.6; }
+        .rejection-list-item:last-child { margin-bottom: 0; }
+        .rejection-list-item i { color: var(--primary-red); margin-top: 4px; }
+        .btn-reject { background: linear-gradient(90deg, #8b0000, #ff2a2a); color: white; border: none; padding: 18px; border-radius: 12px; font-size: 18px; font-weight: 700; font-family: 'Cairo', sans-serif; cursor: pointer; width: 100%; box-shadow: 0 5px 20px rgba(255, 42, 42, 0.4); transition: 0.3s; }
+        .btn-reject:active { transform: scale(0.98); }
+
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--primary-red); color: white; padding: 15px 25px; border-radius: 12px; font-weight: 700; z-index: 2000; transition: 0.4s ease-out; box-shadow: 0 10px 30px rgba(255,0,0,0.5); text-align: center; width: 90%; max-width: 400px; font-size: 14px; line-height: 1.5; }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .loader { border: 4px solid #222; border-top: 4px solid var(--primary-red); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-top: 30px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .text-center { text-align: center; } .mt-3 { margin-top: 15px; } .mb-3 { margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div id="toast" class="toast">تم النسخ بنجاح!</div>
+
+    <div class="web-container">
+        <!-- Splash Screen -->
+        <div id="screen-splash" class="screen active">
+            <div class="splash-content">
+                <div class="logo-container"><img src="https://i.postimg.cc/MGcf0R7R/Turbo-png.png" alt="Turbo Logo"></div>
+                <h1 class="title-main">TURBO <span>SCRIPT</span></h1>
+                <p class="subtitle">سكريبت التوقعات الذكية ومفاتيح التفعيل</p>
+                <div class="loader"></div>
+            </div>
+        </div>
+
+        <!-- Activation Screen -->
+        <div id="screen-activation" class="screen">
+            <div class="logo-container"><img src="https://i.postimg.cc/MGcf0R7R/Turbo-png.png" alt="Turbo Logo"></div>
+            <h1 class="title-main" style="font-size: 24px;">شروط تفعيل تيربو</h1>
+            <p class="subtitle">اتبع الخطوات بالأسفل بالترتيب (التسجيل بالبروموكود Pemo1x)</p>
+            <div class="promo-badge">PEMO1X VIP ACTIVATION</div>
+            
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-key"></i> بوابة فتح السكريبت بكود التفعيل</div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="text" id="activation-code-input" placeholder="أدخل كود التفعيل العشوائي (PEMO-XXXX)" maxlength="20">
+                </div>
+                <!-- هنا تم تعديل الزر عشان يفحص لو البيانات ناقصة يطلع التنبيه -->
+                <button class="btn-primary" style="padding: 14px; font-size: 16px;" onclick="attemptOpenScript()">
+                    <i class="fa-solid fa-bolt"></i> فتح السكريبت
+                </button>
+            </div>
+
+            <div class="card-title mt-3" style="justify-content: center;"><i class="fa-solid fa-list-check"></i> خطوات استلام كود التفعيل</div>
+            
+            <div class="step-box">
+                <div class="step-number">1</div>
+                <div class="step-info">
+                    <div class="step-title">التسجيل بكود التفعيل (البرومو كود)</div>
+                    <div class="step-desc">امنح حساباً جديداً كلياً باستخدام البروموكود الإنجليزي Pemo1x عند التسجيل</div>
+                    <div class="code-highlight">Pemo1x <i class="fa-regular fa-copy" style="font-size: 14px; cursor: pointer; color: #fff;" onclick="copyText('Pemo1x')"></i></div>
+                </div>
+                <i class="fa-solid fa-star step-icon"></i>
+            </div>
+
+            <div class="step-box">
+                <div class="step-number">2</div>
+                <div class="step-info">
+                    <div class="step-title">الحد الأدنى للشحن والايداع</div>
+                    <div class="step-desc">اشحن حسابك الجديد لتغطية الرسوم المطلوبة (مبلغ 3$ أو 120 جنيه مصري)</div>
+                    <div class="price-highlight">
+                        <div class="price-item"><div class="value">$3</div><div class="label">USD</div></div>
+                        <div class="price-item"><div class="value">120</div><div class="label">جنيه مصري</div></div>
+                    </div>
+                </div>
+                <i class="fa-solid fa-shield-halved step-icon"></i>
+            </div>
+
+            <div class="step-box">
+                <div class="step-number">3</div>
+                <div class="step-info">
+                    <div class="step-title">إرفاق سكرين شوت التسجيل</div>
+                    <div class="step-desc">أدخل صورة تثبت تسجيلك بالبروموكود Pemo1x</div>
+                </div>
+                <i class="fa-solid fa-image step-icon"></i>
+            </div>
+
+            <div class="step-box">
+                <div class="step-number">4</div>
+                <div class="step-info">
+                    <div class="step-title">إرفاق سكرين شوت الإيداع</div>
+                    <div class="step-desc">أدخل صورة تثبت عملية الإيداع</div>
+                </div>
+                <i class="fa-solid fa-image step-icon"></i>
+            </div>
+
+            <div class="step-box" style="border-color: var(--primary-red);">
+                <div class="step-number">5</div>
+                <div class="step-info">
+                    <div class="step-title">كتابة الـ ID واستلام الكود العشوائي</div>
+                    <div class="step-desc">أدخل رقم الـ ID (10 أرقام) لاستلام الكود العشوائي</div>
+                </div>
+                <i class="fa-solid fa-id-card step-icon"></i>
+            </div>
+
+            <div class="card mt-3">
+                <div class="input-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="player-id" placeholder="أدخل ID الحساب (10 أرقام)" maxlength="10" inputmode="numeric">
+                </div>
+
+                <div class="upload-box" id="upload-box-1">
+                    <input type="file" id="file-register" accept="image/*">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>اضغط هنا لرفع سكرين شوت التسجيل</p>
+                    <i class="fa-solid fa-circle-check success-icon"></i>
+                </div>
+
+                <div class="upload-box" id="upload-box-2">
+                    <input type="file" id="file-deposit" accept="image/*">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>اضغط هنا لرفع سكرين شوت الإيداع</p>
+                    <i class="fa-solid fa-circle-check success-icon"></i>
+                </div>
+
+                <button class="btn-primary" id="btn-verify" disabled>
+                    <i class="fa-solid fa-shield-halved"></i> تأكيد البيانات واستلام الكود
+                </button>
+            </div>
+        </div>
+
+        <!-- Rejection Screen -->
+        <div id="screen-rejected" class="screen">
+            <div class="rejection-card">
+                <div class="rejection-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="rejection-title-en">ACTIVATION REJECTED</div>
+                <div class="rejection-title-ar">يجب تنفيذ نفس الشروط!</div>
+                <div class="rejection-desc">عذراً، لم يتم إصدار كود التفعيل لهذا الحساب</div>
+                
+                <div class="rejection-list">
+                    <div class="rejection-list-item"><i class="fa-solid fa-circle-xmark"></i> <span>يجب تنفيذ نفس الشروط المطلوبة بالكامل وبشكل صحيح للحصول على كود التفعيل:</span></div>
+                    <div class="rejection-list-item"><i class="fa-solid fa-circle-xmark"></i> <span>التسجيل بحساب جديد كلياً باستخدام البرومو كود (Pemo1x).</span></div>
+                    <div class="rejection-list-item"><i class="fa-solid fa-circle-xmark"></i> <span>إتمام الإيداع والشحن الفعلي بحد أدنى 120 جنيه أو 3 دولار.</span></div>
+                    <div class="rejection-list-item"><i class="fa-solid fa-circle-xmark"></i> <span>إرفاق سكرين شوت حقيقي للتسجيل والإيداع وكتابة الـ ID الصحيح.</span></div>
+                </div>
+
+                <button class="btn-reject" onclick="resetAndReturn()">
+                    <i class="fa-solid fa-rotate-right"></i> حسناً، إعادة تنفيذ نفس الشروط
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verification Overlay -->
+    <div id="verification-overlay">
+        <div class="verify-modal">
+            <i class="fa-solid fa-xmark close-overlay" onclick="document.getElementById('verification-overlay').style.display='none'"></i>
+            <div class="icon-top"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="verify-title">TURBO SECURE VERIFICATION</div>
+            <div class="verify-desc">جاري مراجعة السكريبت وتوليد الكود</div>
+            <div class="verify-steps">
+                <div class="step-item" id="step-1"><div class="step-icon"><i class="fa-solid fa-check"></i></div><div>جاري فحص سكرين التسجيل بالبروموكود Pemo1x</div></div>
+                <div class="step-item" id="step-2"><div class="step-icon"><i class="fa-solid fa-check"></i></div><div>جاري التحقق من سكرين شوت الإيداع واشحن</div></div>
+                <div class="step-item" id="step-3"><div class="step-icon"><i class="fa-solid fa-check"></i></div><div>تم الربط معرف الحساب (<span id="verify-id-display">--------</span>) بالسيرفر المشفر</div></div>
+                <div class="step-item" id="step-4"><div class="step-icon"><i class="fa-solid fa-check"></i></div><div>جاري استخراج كود التفعيل ووضعه تلقائياً لفتح السكريبت</div></div>
+            </div>
+            <div class="progress-bar-container"><div class="progress-bar" id="verify-progress"></div></div>
+            <div class="progress-text"><span>جاري الفحص...</span><span id="verify-percent">0%</span></div>
+        </div>
+    </div>
+
+    <script>
+        // ================= 1. خلفية متحركة =================
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray = [];
+        const numberOfParticles = 60;
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
+        class Particle {
+            constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2 + 1; this.speedX = Math.random() * 1 - 0.5; this.speedY = Math.random() * 1 - 0.5; }
+            update() { this.x += this.speedX; this.y += this.speedY; if (this.x > canvas.width || this.x < 0) this.speedX *= -1; if (this.y > canvas.height || this.y < 0) this.speedY *= -1; }
+            draw() { ctx.fillStyle = 'rgba(255, 42, 42, 0.5)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+        }
+        function initParticles() { particlesArray = []; for (let i = 0; i < numberOfParticles; i++) particlesArray.push(new Particle()); }
+        function connectParticles() {
+            for (let a = 0; a < particlesArray.length; a++) for (let b = a; b < particlesArray.length; b++) {
+                let distance = ((particlesArray[a].x - particlesArray[b].x) ** 2) + ((particlesArray[a].y - particlesArray[b].y) ** 2);
+                if (distance < (canvas.width / 7) * (canvas.height / 7)) {
+                    let opacityValue = 1 - (distance / 20000);
+                    ctx.strokeStyle = 'rgba(255, 42, 42, ' + opacityValue + ')'; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke();
+                }
+            }
+        }
+        function animateParticles() { ctx.clearRect(0, 0, canvas.width, canvas.height); for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); particlesArray[i].draw(); } connectParticles(); requestAnimationFrame(animateParticles); }
+        initParticles(); animateParticles();
+
+        // ================= 2. التنقل =================
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message; toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+        window.addEventListener('load', () => {
+            setTimeout(() => { if (document.getElementById('screen-splash').classList.contains('active')) showScreen('screen-activation'); }, 3000);
+        });
+
+        // ================= 3. التحقق من المدخلات =================
+        const playerIdInput = document.getElementById('player-id');
+        const fileRegisterInput = document.getElementById('file-register');
+        const fileDepositInput = document.getElementById('file-deposit');
+        const uploadBox1 = document.getElementById('upload-box-1');
+        const uploadBox2 = document.getElementById('upload-box-2');
+        const btnVerify = document.getElementById('btn-verify');
+
+        playerIdInput.addEventListener('input', function() { this.value = this.value.replace(/[^0-9]/g, ''); if (this.value.length > 10) this.value = this.value.slice(0, 10); checkFormValidity(); });
+        fileRegisterInput.addEventListener('change', function() { if (this.files.length > 0) { uploadBox1.classList.add('has-file'); uploadBox1.querySelector('p').innerText = 'تم رفع سكرين التسجيل بنجاح'; } checkFormValidity(); });
+        fileDepositInput.addEventListener('change', function() { if (this.files.length > 0) { uploadBox2.classList.add('has-file'); uploadBox2.querySelector('p').innerText = 'تم رفع سكرين الإيداع بنجاح'; } checkFormValidity(); });
+
+        function checkFormValidity() {
+            if (playerIdInput.value.length === 10 && fileRegisterInput.files.length > 0 && fileDepositInput.files.length > 0) btnVerify.disabled = false;
+            else btnVerify.disabled = true;
+        }
+
+        // ================= 4. دالة فتح السكريبت (التحقق من الشروط) =================
+        function attemptOpenScript() {
+            const idValue = playerIdInput.value;
+            const file1 = fileRegisterInput.files;
+            const file2 = fileDepositInput.files;
+
+            // لو الـ ID مش 10 أرقام أو الصور مش مرفوعة، تطلع الرسالة دي
+            if (idValue.length !== 10 || file1.length === 0 || file2.length === 0) {
+                showToast('عذراً، لزم تحط اي دي (10 أرقام) و صورتين (تسجيل وشحن) أولاً.');
+            } else {
+                // لو كل البيانات كاملة
+                showToast('تم استلام البيانات بنجاح! جاري فتح السكريبت...');
+            }
+        }
+
+        // ================= 5. عملية الفحص =================
+        const overlay = document.getElementById('verification-overlay');
+        const step1 = document.getElementById('step-1'), step2 = document.getElementById('step-2'), step3 = document.getElementById('step-3'), step4 = document.getElementById('step-4');
+        const progressBar = document.getElementById('verify-progress'), percentText = document.getElementById('verify-percent');
+        const verifyIdDisplay = document.getElementById('verify-id-display');
+        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        btnVerify.addEventListener('click', async () => {
+            if (btnVerify.disabled) return;
+            overlay.style.display = 'flex';
+            verifyIdDisplay.innerText = playerIdInput.value;
+
+            step1.classList.add('active'); progressBar.style.width = '10%'; percentText.innerText = '10%'; await sleep(1200);
+            step1.classList.remove('active'); step1.classList.add('done'); progressBar.style.width = '33%'; percentText.innerText = '33%';
+            step2.classList.add('active'); await sleep(1200);
+            step2.classList.remove('active'); step2.classList.add('done'); progressBar.style.width = '66%'; percentText.innerText = '66%';
+            step3.classList.add('active'); await sleep(1200);
+            step3.classList.remove('active'); step3.classList.add('done'); progressBar.style.width = '85%'; percentText.innerText = '85%';
+            step4.classList.add('active'); await sleep(1200);
+            step4.classList.remove('active'); step4.classList.add('done'); progressBar.style.width = '100%'; percentText.innerText = '100%';
+            await sleep(500);
+
+            overlay.style.display = 'none';
+            showScreen('screen-rejected');
+            
+            setTimeout(() => {
+                step1.classList.remove('done'); step2.classList.remove('done'); step3.classList.remove('done'); step4.classList.remove('done');
+                progressBar.style.width = '0%'; percentText.innerText = '0%';
+            }, 1000);
+        });
+
+        // إعادة تعيين والعودة
+        function resetAndReturn() {
+            playerIdInput.value = '';
+            fileRegisterInput.value = '';
+            fileDepositInput.value = '';
+            uploadBox1.classList.remove('has-file'); uploadBox1.querySelector('p').innerText = 'اضغط هنا لرفع سكرين شوت التسجيل';
+            uploadBox2.classList.remove('has-file'); uploadBox2.querySelector('p').innerText = 'اضغط هنا لرفع سكرين شوت الإيداع';
+            btnVerify.disabled = true;
+            showScreen('screen-activation');
+            showToast('تم إعادة تعيين البيانات، يرجى المحاولة مرة أخرى.');
+        }
+
+        // نسخ النص
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => showToast('تم نسخ ' + text + ' بنجاح!'));
+        }
+
+        // ================= 6. الحماية =================
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            showToast('خاصية كليك الماوس معطلة لحماية السكريبت.');
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && (e.key === 'U' || e.key === 'u'))) {
+                e.preventDefault();
+                showToast('محاولة عرض المصدر مرفوضة! السكريبت محمي.');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>
